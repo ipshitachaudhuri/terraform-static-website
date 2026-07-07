@@ -14,37 +14,31 @@ resource "aws_cloudfront_origin_access_control" "oac" {
 }
 resource "aws_cloudfront_distribution" "site" {
   enabled             = true
-  is_ipv6_enabled     = true
   default_root_object = "index.html"
-  web_acl_id          = "arn:aws:wafv2:us-east-1:024826530424:global/webacl/CreatedByCloudFront-24d6b413/d44ec543-2598-454d-aaa8-dd0887c71b9c"
-
-  tags = {
-    Name = "buu.com"
-  }
 
   aliases = [
     "ipshitechnology.com",
     "www.ipshitechnology.com"
   ]
-
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
     origin_id                = "S3Origin"
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
-
   default_cache_behavior {
     target_origin_id       = "S3Origin"
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods = [
-      "GET",
-      "HEAD"
-    ]
-    cached_methods = [
-      "GET",
-      "HEAD"
-    ]
-    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+
+    allowed_methods = ["GET", "HEAD"]
+    cached_methods  = ["GET", "HEAD"]
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
   }
 
   restrictions {
@@ -53,22 +47,12 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+
   viewer_certificate {
     acm_certificate_arn = aws_acm_certificate.site.arn
     ssl_support_method  = "sni-only"
   }
-}
 
-resource "aws_s3_bucket_website_configuration" "site" {
-  bucket = aws_s3_bucket.site.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
 }
 
 resource "aws_s3_bucket_policy" "site" {

@@ -9,3 +9,4 @@ variable "bucket_name" {
   type        = string
   default     = "my-static-site-buck-123456"
 }
+
